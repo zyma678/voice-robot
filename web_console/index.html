@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0d1117" />
+    <title>Voice Robot Console</title>
+    <link rel="stylesheet" href="/console/assets/styles.css?v=20260712-aurora" />
+  </head>
+  <body>
+    <!-- 登录遮罩：未登录时覆盖整个页面 -->
+    <div id="login-overlay" class="login-overlay">
+      <div id="login-loading" class="login-card login-loading-card">
+        <h2>Voice Robot</h2>
+        <div class="login-spinner"></div>
+        <p class="login-subtitle">加载中…</p>
+      </div>
+      <form id="login-form" class="login-card" autocomplete="on" hidden>
+        <div class="login-brand-mark" aria-hidden="true"><span></span></div>
+        <h2>Voice Robot</h2>
+        <p class="login-subtitle">请登录以使用控制台</p>
+        <label class="login-field">
+          <span class="label">用户名</span>
+          <input id="login-user" type="text" autocomplete="username" required />
+        </label>
+        <label class="login-field">
+          <span class="label">密码</span>
+          <input id="login-pass" type="password" autocomplete="current-password" required />
+        </label>
+        <p id="login-error" class="login-error" hidden>用户名或密码错误</p>
+        <button type="submit" class="button primary login-submit">登录</button>
+      </form>
+    </div>
+
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-row">
+            <div class="brand-lockup">
+              <div class="brand-mark" aria-hidden="true"><span></span></div>
+              <div>
+                <h1>Voice Robot</h1>
+                <p>智能硬件控制台</p>
+              </div>
+            </div>
+            <button
+              id="theme-toggle"
+              class="theme-toggle"
+              type="button"
+              aria-label="切换主题"
+              title="切换明暗主题"
+            >浅色</button>
+            <button
+              id="logout-btn"
+              class="theme-toggle"
+              type="button"
+              title="退出登录"
+            >登出</button>
+          </div>
+          <p class="brand-caption">本地运行态 · 实时可观测</p>
+        </div>
+        <nav class="tab-list" aria-label="Console sections">
+          <button class="tab-button active" data-icon="字" data-tab-target="vocab">生字管理</button>
+          <button class="tab-button" data-icon="成" data-tab-target="idiom">成语学习</button>
+          <button class="tab-button" data-icon="⌁" data-tab-target="overview">运行态总览</button>
+          <button class="tab-button" data-icon="◉" data-tab-target="conversation">对话</button>
+          <button class="tab-button" data-icon="⌁" data-tab-target="gateway">手机网关</button>
+          <button class="tab-button" data-icon="⌁" data-tab-target="provisioning">设备配网</button>
+          <button class="tab-button" data-icon="◇" data-tab-target="simulator">真机模拟</button>
+          <button class="tab-button" data-icon="◫" data-tab-target="memory">记忆管理</button>
+          <button class="tab-button" data-icon="↗" data-tab-target="metrics">Token 统计</button>
+          <button class="tab-button" data-icon="✦" data-tab-target="scenes">场景</button>
+          <button class="tab-button" data-icon="⚙" data-tab-target="settings">模型配置</button>
+        </nav>
+        <div class="sidebar-stats">
+          <div class="pill" id="health-pill">health: --</div>
+          <div class="pill" id="ws-pill">ws: disconnected</div>
+          <div class="pill" id="hardware-pill" title="硬件设备连接状态">硬件: --</div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section class="tab-panel" id="tab-overview">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>运行态总览</h2>
+                <p>服务健康、模型与运行路径。</p>
+              </div>
+              <button id="refresh-status" class="button secondary">刷新</button>
+            </div>
+            <div id="status-banner" class="banner" hidden></div>
+            <div class="status-grid">
+              <div class="stat-card">
+                <span class="label">app</span>
+                <strong id="status-app-name">--</strong>
+                <span class="small-meta" id="status-app-source">env</span>
+              </div>
+              <div class="stat-card">
+                <span class="label">default user</span>
+                <strong id="status-default-user">--</strong>
+                <span class="small-meta" id="status-default-user-source">env</span>
+              </div>
+              <div class="stat-card">
+                <span class="label">llm model</span>
+                <strong id="status-llm-model">--</strong>
+                <span class="small-meta" id="status-llm-model-source-overview">--</span>
+              </div>
+              <div class="stat-card">
+                <span class="label">tts voice</span>
+                <strong id="status-tts-voice">--</strong>
+                <span class="small-meta" id="status-tts-voice-source">--</span>
+              </div>
+            </div>
+            <div class="status-detail">
+              <div>
+                <span class="label">memory root</span>
+                <code id="status-memory-root">--</code>
+              </div>
+              <div>
+                <span class="label">llm api base url</span>
+                <code id="status-llm-base-url">--</code>
+              </div>
+              <div>
+                <span class="label">asr resource</span>
+                <code id="status-asr-resource-id">--</code>
+              </div>
+              <div>
+                <span class="label">asr resource source</span>
+                <span id="status-asr-resource-source">--</span>
+              </div>
+              <div>
+                <span class="label">recent note</span>
+                <span id="status-note">当前运行态为本地 W1 fallback</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-conversation">
+          <div class="conversation-layout" id="conversation-layout">
+            <div class="conversation-main">
+              <div class="conversation-header">
+                <div class="conversation-title">
+                  <h2>对话</h2>
+                  <p>文本与语音统一走 WebSocket /ws，自动连接与鉴权；Bot 回复下方出现重听按钮时可重放语音。</p>
+                </div>
+                <div class="conversation-toolbar">
+                  <label class="history-picker">
+                    <span class="label">历史用户</span>
+                    <select id="conv-history-user"></select>
+                  </label>
+                  <button id="conv-load-history" class="button secondary" type="button">加载历史</button>
+                  <button id="conv-new-session" class="button secondary" type="button">新对话</button>
+                  <label class="history-picker">
+                    <span class="label">硬件设备</span>
+                    <select id="conv-device-select"></select>
+                  </label>
+                  <button id="conv-device-say" class="button secondary" type="button" title="把输入框文本下发到该硬件播报">下发播报</button>
+                  <button id="conv-device-conversation" class="button secondary" type="button" title="远程开启/关闭该硬件的持续对话模式" aria-pressed="false">对话模式</button>
+                  <button id="conv-device-monitor" class="button secondary" type="button" title="实时监看该硬件会话" aria-pressed="false">监看</button>
+                  <div class="volume-control">
+                    <button id="conv-volume-toggle" class="button secondary" type="button" title="调整所选硬件的播放音量" aria-expanded="false">音量</button>
+                    <div id="conv-volume-panel" class="volume-panel" hidden>
+                      <div class="volume-panel-head">
+                        <span class="label">硬件音量</span>
+                        <strong id="conv-volume-value">0</strong>
+                      </div>
+                      <input id="conv-volume-slider" type="range" min="0" max="100" step="1" value="0" />
+                      <div class="volume-actions">
+                        <button id="conv-volume-apply" class="button secondary" type="button">应用</button>
+                        <button id="conv-volume-mute" class="button secondary" type="button">静音</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="conversation-status">
+                <span class="dot-pill" id="conv-ws-state">ws: --</span>
+                <span class="dot-pill" id="conv-mic-state">mic: idle</span>
+                <span class="dot-pill" id="conv-vad-state">vad: idle</span>
+                <span class="dot-pill" id="conv-playback-state">play: idle</span>
+                <span class="dot-pill" id="conv-monitor-state">监看: off</span>
+                <button id="conv-log-toggle" class="button secondary" type="button">日志面板</button>
+              </div>
+              <div id="conv-banner" class="banner" hidden></div>
+              <div id="conversation-thread" class="conversation-thread" aria-live="polite">
+                <div class="thread-empty" id="thread-empty">
+                  开始对话：输入文本回车发送，或点击麦克风开启连续语音。
+                </div>
+              </div>
+              <div class="composer">
+                <textarea
+                  id="conv-input"
+                  class="composer-input"
+                  placeholder="输入框：输入文本回车发送，或点击语音开启连续对话…"
+                  rows="1"
+                ></textarea>
+                <div class="composer-actions">
+                  <button id="conv-mic" class="button secondary mic-button" type="button" aria-pressed="false" title="连续语音（VAD）">🎙 语音</button>
+                  <button id="conv-send" class="button primary" type="button" title="发送">发送</button>
+                </div>
+              </div>
+            </div>
+
+            <aside class="conversation-side" id="conversation-side">
+              <details class="conversation-config" id="conversation-config" open>
+                <summary class="conversation-config-summary">调试 / 高级配置</summary>
+                <div class="conversation-config-body">
+                  <div id="ws-banner" class="banner" hidden></div>
+                  <div class="form-grid conversation-settings-grid">
+                  <label>
+                    <span class="label">device_id</span>
+                    <input id="device-id" value="web-console" />
+                  </label>
+                  <label>
+                    <span class="label">token</span>
+                    <input id="auth-token" type="password" autocomplete="off" placeholder="VOICE_ROBOT_AUTH_TOKEN" />
+                  </label>
+                  <label>
+                    <span class="label">user_id</span>
+                    <input id="conv-user-id" value="default-user" />
+                  </label>
+                  <label>
+                    <span class="label">VAD 阈值（RMS）</span>
+                    <input id="speech-vad-threshold" type="number" step="0.0001" value="0.0200" />
+                  </label>
+                  <label>
+                    <span class="label">静音结束（ms）</span>
+                    <input id="speech-vad-silence-ms" type="number" step="10" value="700" />
+                  </label>
+                  <label>
+                    <span class="label">barge-in latency (ms)</span>
+                    <strong id="speech-barge-in-latency">--</strong>
+                  </label>
+                </div>
+                <label class="label" for="ws-text-input">文本输入（打断当前播报并触发新一轮）</label>
+                <textarea id="ws-text-input">换个话题，讲太空故事</textarea>
+                <div class="button-row">
+                  <button id="send-barge-in" class="button secondary" type="button">barge_in</button>
+                  <button id="send-text-input" class="button secondary" type="button">text_input</button>
+                </div>
+                <!-- hidden placeholders kept so the mic toggle logic and tests stay valid -->
+                <button id="speech-start" class="button primary" type="button" hidden>开始</button>
+                <button id="speech-stop" class="button secondary" type="button" hidden>停止</button>
+                </div>
+              </details>
+
+              <section class="conversation-log-pane" id="conversation-log-pane">
+                <div class="panel-header compact-header">
+                  <h3>逐条日志信息</h3>
+                  <div class="button-row compact">
+                    <span class="small-meta" id="conv-barge-in-latency-meta">barge-in: --</span>
+                    <button id="clear-log" class="button secondary" type="button">清空</button>
+                  </div>
+                </div>
+                <div id="message-log" class="log"></div>
+              </section>
+            </aside>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-gateway">
+          <div class="gateway-layout">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>手机网关</h2>
+                  <p>浏览器模拟手机 BLE Central + 云端 WebSocket Gateway。第一阶段只打通 BLE 控制/状态和云端设备注册，不承载完整语音。</p>
+                </div>
+              </div>
+              <div id="gateway-banner" class="banner" hidden></div>
+              <div class="status-grid gateway-status-grid">
+                <div class="stat-card">
+                  <span class="label">BLE</span>
+                  <strong id="gateway-ble-state">disconnected</strong>
+                  <span class="small-meta" id="gateway-target-name">VR-esp32-001</span>
+                </div>
+                <div class="stat-card">
+                  <span class="label">cloud</span>
+                  <strong id="gateway-cloud-state">disconnected</strong>
+                  <span class="small-meta" id="gateway-cloud-note">等待连接</span>
+                </div>
+                <div class="stat-card">
+                  <span class="label">last status</span>
+                  <strong id="gateway-last-status">--</strong>
+                  <span class="small-meta">来自 BLE status notify/read</span>
+                </div>
+                <div class="stat-card">
+                  <span class="label">phase</span>
+                  <strong>control only</strong>
+                  <span class="small-meta">支持 `set_volume`，`say` 先只记录日志</span>
+                </div>
+              </div>
+              <div class="form-grid gateway-form-grid">
+                <label>
+                  <span class="label">hardware device_id</span>
+                  <input id="gateway-device-id" value="esp32-001" />
+                </label>
+                <label>
+                  <span class="label">gateway_id</span>
+                  <input id="gateway-id" value="web-gateway-local" />
+                </label>
+                <label>
+                  <span class="label">gateway token</span>
+                  <input id="gateway-token" type="password" autocomplete="off" placeholder="VOICE_ROBOT_AUTH_TOKEN" />
+                </label>
+              </div>
+              <div class="button-row">
+                <button id="gateway-connect-ble" class="button secondary" type="button">连接 BLE</button>
+                <button id="gateway-connect-cloud" class="button secondary" type="button">连接云端</button>
+              </div>
+              <div class="subpanel">
+                <div class="panel-header compact-header">
+                  <div>
+                    <h3>LCD 颜色自检</h3>
+                    <p class="small-meta">向在线硬件下发纯色/色条诊断，用来判断红蓝通道、反色和黑白电平。</p>
+                  </div>
+                </div>
+                <div class="button-row compact">
+                  <button class="button secondary gateway-color-test" data-color-test="bars" type="button">色条</button>
+                  <button class="button secondary gateway-color-test" data-color-test="red" type="button">红</button>
+                  <button class="button secondary gateway-color-test" data-color-test="green" type="button">绿</button>
+                  <button class="button secondary gateway-color-test" data-color-test="blue" type="button">蓝</button>
+                  <button class="button secondary gateway-color-test" data-color-test="black" type="button">黑</button>
+                  <button class="button secondary gateway-color-test" data-color-test="white" type="button">白</button>
+                </div>
+              </div>
+              <div class="subpanel">
+                <div class="panel-header compact-header">
+                  <div>
+                    <h3>BLE 控制调试</h3>
+                    <p class="small-meta">手动向 BLE control characteristic 写入 `{"type":"set_volume","volume":N}`，或通过云端收到 `set_volume` 命令后自动转发。</p>
+                  </div>
+                </div>
+                <div class="gateway-volume-row">
+                  <input id="gateway-volume-slider" type="range" min="0" max="100" step="1" value="0" />
+                  <strong id="gateway-volume-value">0</strong>
+                  <button id="gateway-send-volume" class="button secondary" type="button">发送音量</button>
+                </div>
+              </div>
+            </div>
+            <div class="subpanel gateway-log-panel">
+              <div class="panel-header compact-header">
+                <div>
+                  <h3>网关日志</h3>
+                  <p class="small-meta">记录 BLE 状态、云端 auth、下发命令与错误信息。</p>
+                </div>
+                <div class="button-row compact">
+                  <button id="gateway-clear-log" class="button secondary" type="button">清空</button>
+                </div>
+              </div>
+              <div id="gateway-log" class="log"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-provisioning">
+          <div class="gateway-layout">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>设备配网（蓝牙 → 设 Wi-Fi）</h2>
+                  <p>浏览器经 Web Bluetooth 直连处于配网模式的设备（广播名 <code>PROV_&lt;device_id&gt;</code>），用乐鑫 protocomm Security1（X25519 + AES-CTR + PoP）下发 SSID/密码，替代官方 App。仅支持 Chrome/Edge，且须经 <code>localhost</code> 或 HTTPS 打开。</p>
+                </div>
+              </div>
+              <form id="prov-form" class="form-grid gateway-form-grid">
+                <label>
+                  <span class="label">设备名前缀</span>
+                  <input id="prov-name-prefix" value="PROV_" />
+                </label>
+                <label>
+                  <span class="label">配网 PoP</span>
+                  <input id="prov-pop" value="vr-prov-1234" />
+                </label>
+                <label>
+                  <span class="label">Wi-Fi 名称 (SSID)</span>
+                  <input id="prov-ssid" placeholder="2.4GHz Wi-Fi" />
+                </label>
+                <label>
+                  <span class="label">Wi-Fi 密码</span>
+                  <input id="prov-password" type="password" placeholder="留空表示开放网络" />
+                </label>
+                <div class="button-row">
+                  <button id="prov-start" class="button" type="submit">连接并配网</button>
+                </div>
+              </form>
+              <div class="subpanel">
+                <div class="panel-header compact-header">
+                  <div>
+                    <h3>配网日志</h3>
+                  </div>
+                </div>
+                <div id="prov-log" class="log"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-simulator">
+          <div class="gateway-layout">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>真机模拟</h2>
+                  <p>浏览器扮演 ESP32-S3：以硬件 device_id 接入 /ws，镜像固件 UI 状态机与半双工对话逻辑，用于烧录前端到端验证。开启后会出现在「对话」页的硬件设备下拉里。</p>
+                </div>
+              </div>
+              <div id="sim-banner" class="banner" hidden></div>
+              <div class="device-stage">
+                <!-- Mirrors the real 240x284 portrait LCD; the cat reacts to sim.screen. -->
+                <div class="device-screen" id="sim-screen-mock" data-state="offline" data-character="princess" role="button" tabindex="0" aria-label="点击形象开启或关闭对话模式">
+                  <svg class="cat" viewBox="0 0 120 120" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="catFur" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#ffb24d" /><stop offset="1" stop-color="#ff8a3d" />
+                      </linearGradient>
+                      <linearGradient id="catBody" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#ff9b42" /><stop offset="1" stop-color="#f07a2e" />
+                      </linearGradient>
+                    </defs>
+                    <!-- Inline fill/stroke so the cat is colorful even if styles.css
+                         is cached/stale; CSS classes remain for animations. -->
+                    <g class="cat-tail-g">
+                      <path class="cat-tail" d="M88 96 q22 2 18 -22" fill="none" stroke="url(#catBody)" stroke-width="9" stroke-linecap="round" />
+                    </g>
+                    <ellipse class="cat-body" cx="60" cy="104" rx="30" ry="18" fill="url(#catBody)" />
+                    <!-- colorful collar + bell -->
+                    <path class="cat-collar" d="M40 86 Q60 98 80 86" fill="none" stroke="#3aa0ff" stroke-width="5" stroke-linecap="round" />
+                    <circle class="cat-bell" cx="60" cy="93" r="4.2" fill="#ffd23e" stroke="#e0a000" stroke-width="1" />
+                    <line class="cat-bell-line" x1="60" y1="90" x2="60" y2="95.5" stroke="#e0a000" stroke-width="1" />
+                    <g class="cat-head-g">
+                      <path class="cat-ear cat-ear-l" d="M36 50 L30 24 L52 40 Z" fill="url(#catFur)" stroke="#d96a23" stroke-width="1.5" />
+                      <path class="cat-ear cat-ear-r" d="M84 50 L90 24 L68 40 Z" fill="url(#catFur)" stroke="#d96a23" stroke-width="1.5" />
+                      <path class="cat-ear-in cat-ear-l" d="M39 46 L35 30 L49 41 Z" fill="#ff9ec4" />
+                      <path class="cat-ear-in cat-ear-r" d="M81 46 L85 30 L71 41 Z" fill="#ff9ec4" />
+                      <circle class="cat-face" cx="60" cy="60" r="30" fill="url(#catFur)" stroke="#d96a23" stroke-width="1.5" />
+                      <ellipse class="cat-blush" cx="44" cy="68" rx="5.5" ry="3.2" fill="#ff7eb0" opacity="0.55" />
+                      <ellipse class="cat-blush" cx="76" cy="68" rx="5.5" ry="3.2" fill="#ff7eb0" opacity="0.55" />
+                      <g class="cat-eye cat-eye-l">
+                        <ellipse class="cat-eye-white" cx="49" cy="58" rx="8.5" ry="9" fill="#fdfdff" stroke="#d96a23" stroke-width="1" />
+                        <circle class="cat-iris" cx="49" cy="59" r="6" fill="#2fb673" />
+                        <circle class="cat-pupil" cx="49" cy="59" r="3.2" fill="#1b2330" />
+                        <circle class="cat-shine" cx="46.5" cy="56" r="2.2" fill="#ffffff" />
+                        <circle class="cat-eye-x" cx="49" cy="58" r="0" fill="none" stroke="#1b2330" stroke-width="2.4" />
+                      </g>
+                      <g class="cat-eye cat-eye-r">
+                        <ellipse class="cat-eye-white" cx="71" cy="58" rx="8.5" ry="9" fill="#fdfdff" stroke="#d96a23" stroke-width="1" />
+                        <circle class="cat-iris" cx="71" cy="59" r="6" fill="#2fb673" />
+                        <circle class="cat-pupil" cx="71" cy="59" r="3.2" fill="#1b2330" />
+                        <circle class="cat-shine" cx="68.5" cy="56" r="2.2" fill="#ffffff" />
+                        <circle class="cat-eye-x" cx="71" cy="58" r="0" fill="none" stroke="#1b2330" stroke-width="2.4" />
+                      </g>
+                      <path class="cat-nose" d="M57 68 L63 68 L60 72 Z" fill="#ff6f91" />
+                      <ellipse class="cat-mouth" cx="60" cy="78" rx="6" ry="3" fill="#c8506a" />
+                      <g class="cat-whiskers" stroke="#fff4e0" stroke-width="1.2" opacity="0.85">
+                        <line x1="30" y1="64" x2="44" y2="66" /><line x1="30" y1="70" x2="44" y2="70" />
+                        <line x1="90" y1="64" x2="76" y2="66" /><line x1="90" y1="70" x2="76" y2="70" />
+                      </g>
+                    </g>
+                    <g class="cat-think" opacity="0" fill="#f4f6fb">
+                      <circle cx="92" cy="30" r="2.5" /><circle cx="100" cy="22" r="3.2" /><circle cx="109" cy="13" r="4" />
+                    </g>
+                    <circle class="cat-listen-ring" cx="60" cy="60" r="40" fill="none" stroke="rgba(120,200,255,0.7)" stroke-width="3" opacity="0" />
+                  </svg>
+                  <svg class="princess" viewBox="0 0 120 120" aria-hidden="true">
+                    <!-- Inline fills so colors render even with a stale styles.css.
+                         Chibi full-body: big head (keeps eyes large) + arms/hands
+                         + dress + legs/shoes. Animation hooks kept: pr-eye / pr-mouth
+                         / pr-think / pr-listen-ring. -->
+                    <defs>
+                      <linearGradient id="prDress" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#f48fc6" /><stop offset="1" stop-color="#b86ad6" />
+                      </linearGradient>
+                    </defs>
+                    <!-- legs + shoes -->
+                    <rect x="52" y="100" width="5" height="12" rx="2.5" fill="#ffe0c4" />
+                    <rect x="63" y="100" width="5" height="12" rx="2.5" fill="#ffe0c4" />
+                    <ellipse cx="52" cy="113" rx="6" ry="3.4" fill="#9c3b6e" />
+                    <ellipse cx="68" cy="113" rx="6" ry="3.4" fill="#9c3b6e" />
+                    <!-- dress (bell) + lace hem + sash -->
+                    <path d="M46 66 Q60 60 74 66 L86 104 Q60 112 34 104 Z" fill="url(#prDress)" />
+                    <path d="M34 104 Q60 112 86 104 L84 99 Q60 106 36 99 Z" fill="#ffd9ef" />
+                    <path d="M47 74 Q60 79 73 74 L72 80 Q60 84 48 80 Z" fill="#ffd23e" />
+                    <!-- arms + hands (right hand waving up) -->
+                    <path d="M49 70 Q40 80 36 88" stroke="#ffe0c4" stroke-width="5" stroke-linecap="round" fill="none" />
+                    <circle cx="35" cy="90" r="4" fill="#ffe0c4" />
+                    <path d="M71 70 Q82 64 86 55" stroke="#ffe0c4" stroke-width="5" stroke-linecap="round" fill="none" />
+                    <circle cx="87" cy="53" r="4" fill="#ffe0c4" />
+                    <!-- puffy sleeves -->
+                    <circle cx="49" cy="68" r="6" fill="url(#prDress)" />
+                    <circle cx="71" cy="68" r="6" fill="url(#prDress)" />
+                    <!-- hair back + side locks -->
+                    <ellipse cx="60" cy="40" rx="27" ry="27" fill="#8a5a2c" />
+                    <path d="M34 42 Q29 70 41 86 L47 82 Q39 60 43 44 Z" fill="#8a5a2c" />
+                    <path d="M86 42 Q91 70 79 86 L73 82 Q81 60 77 44 Z" fill="#8a5a2c" />
+                    <circle cx="42" cy="84" r="3" fill="#ff8fb6" /><circle cx="78" cy="84" r="3" fill="#ff8fb6" />
+                    <!-- face -->
+                    <circle cx="60" cy="42" r="22" fill="#ffe0c4" />
+                    <!-- bangs -->
+                    <path d="M38 44 Q40 20 60 20 Q80 20 82 44 Q70 34 60 36 Q50 34 38 44 Z" fill="#9a6634" />
+                    <!-- tiara -->
+                    <path class="pr-crown" d="M48 20 L52 11 L57 19 L60 9 L63 19 L68 11 L72 20 Z" fill="#ffd23e" stroke="#e0a000" stroke-width="1" />
+                    <circle cx="60" cy="12" r="2" fill="#ff5d7a" /><circle cx="51" cy="14" r="1.5" fill="#5db0ff" /><circle cx="69" cy="14" r="1.5" fill="#5db0ff" />
+                    <!-- blush -->
+                    <ellipse cx="46" cy="48" rx="4.5" ry="2.8" fill="#ff8fb6" opacity="0.6" />
+                    <ellipse cx="74" cy="48" rx="4.5" ry="2.8" fill="#ff8fb6" opacity="0.6" />
+                    <!-- eyes (big, blue) -->
+                    <g class="pr-eye">
+                      <ellipse class="pr-eye-white" cx="51" cy="43" rx="6" ry="7.5" fill="#fdfdff" stroke="#caa57a" stroke-width="0.8" />
+                      <circle class="pr-iris" cx="51" cy="44" r="4.6" fill="#4aa3ff" />
+                      <circle class="pr-pupil" cx="51" cy="44" r="2.4" fill="#1b2330" />
+                      <circle class="pr-shine" cx="49.5" cy="42" r="1.5" fill="#ffffff" />
+                      <circle class="pr-eye-x" cx="51" cy="43" r="0" fill="none" stroke="#1b2330" stroke-width="2.2" />
+                    </g>
+                    <g class="pr-eye">
+                      <ellipse class="pr-eye-white" cx="69" cy="43" rx="6" ry="7.5" fill="#fdfdff" stroke="#caa57a" stroke-width="0.8" />
+                      <circle class="pr-iris" cx="69" cy="44" r="4.6" fill="#4aa3ff" />
+                      <circle class="pr-pupil" cx="69" cy="44" r="2.4" fill="#1b2330" />
+                      <circle class="pr-shine" cx="67.5" cy="42" r="1.5" fill="#ffffff" />
+                      <circle class="pr-eye-x" cx="69" cy="43" r="0" fill="none" stroke="#1b2330" stroke-width="2.2" />
+                    </g>
+                    <!-- nose + mouth -->
+                    <circle cx="60" cy="49" r="1.2" fill="#e69a78" />
+                    <ellipse class="pr-mouth" cx="60" cy="55" rx="3.4" ry="2.1" fill="#d4456a" />
+                    <!-- sparkle -->
+                    <path d="M92 44 l1.4 3 3 1.4 -3 1.4 -1.4 3 -1.4 -3 -3 -1.4 3 -1.4 Z" fill="#fff3b0" opacity="0.9" />
+                    <!-- think dots + listen ring (shared states) -->
+                    <g class="pr-think" opacity="0" fill="#f4f6fb">
+                      <circle cx="92" cy="26" r="2.5" /><circle cx="100" cy="18" r="3.2" /><circle cx="109" cy="10" r="4" />
+                    </g>
+                    <circle class="pr-listen-ring" cx="60" cy="44" r="42" fill="none" stroke="rgba(120,200,255,0.7)" stroke-width="3" opacity="0" />
+                  </svg>
+                  <div class="device-caption">
+                    <div class="device-state-cn" id="sim-state-cn">未连接</div>
+                    <div class="device-subtitle" id="sim-screen-subtitle"></div>
+                    <div class="device-hint" id="sim-tap-hint">未上电</div>
+                  </div>
+                </div>
+                <p class="small-meta device-tap-note">点击小猫开启 / 关闭对话模式（模拟真机触摸屏）</p>
+              </div>
+              <div class="status-grid gateway-status-grid">
+                <div class="stat-card">
+                  <span class="label">screen</span>
+                  <strong id="sim-screen">offline</strong>
+                  <span class="small-meta" id="sim-screen-title">未连接</span>
+                </div>
+                <div class="stat-card">
+                  <span class="label">cloud</span>
+                  <strong id="sim-cloud-state">disconnected</strong>
+                  <span class="small-meta" id="sim-cloud-note">等待连接</span>
+                </div>
+                <div class="stat-card">
+                  <span class="label">conversation</span>
+                  <strong id="sim-conv-state">off</strong>
+                  <span class="small-meta" id="sim-mic-state">mic: idle</span>
+                </div>
+                <div class="stat-card">
+                  <span class="label">volume</span>
+                  <strong id="sim-volume">0</strong>
+                  <span class="small-meta">收到 set_volume 命令后更新</span>
+                </div>
+              </div>
+              <div class="form-grid gateway-form-grid">
+                <label>
+                  <span class="label">hardware device_id</span>
+                  <input id="sim-device-id" value="esp32-sim-001" />
+                </label>
+                <label>
+                  <span class="label">token</span>
+                  <input id="sim-token" type="password" autocomplete="off" placeholder="VOICE_ROBOT_AUTH_TOKEN" />
+                </label>
+                <label>
+                  <span class="label">user_id</span>
+                  <input id="sim-user-id" value="default-user" />
+                </label>
+                <label>
+                  <span class="label">VAD 阈值 (RMS)</span>
+                  <input id="sim-vad-threshold" type="number" min="0" max="1" step="0.005" value="0.02" />
+                </label>
+                <label>
+                  <span class="label">尾静音 (ms)</span>
+                  <input id="sim-vad-silence-ms" type="number" min="200" max="2000" step="50" value="700" />
+                </label>
+              </div>
+              <div class="button-row">
+                <button id="sim-connect" class="button" type="button">上电（连接）</button>
+                <button id="sim-disconnect" class="button secondary" type="button" disabled>断电</button>
+                <label class="history-picker" title="设备屏幕显示的卡通形象（后台设置，保存到运行态配置）">
+                  <span class="label">形象</span>
+                  <select id="sim-character">
+                    <option value="princess" selected>小公主</option>
+                    <option value="cat">小猫</option>
+                  </select>
+                </label>
+                <label class="history-picker" title="打断方式（ADR 0002）：半双工=放音不收音；全双工=放音中说话即打断（浏览器 AEC）；唤醒词=放音中任意说话不打断，仅点「唤醒词」按钮打断（模拟 WakeNet）">
+                  <span class="label">打断方式</span>
+                  <select id="sim-duplex-mode">
+                    <option value="half">半双工</option>
+                    <option value="full" selected>全双工(浏览器AEC)</option>
+                    <option value="wake">唤醒词(模拟)</option>
+                  </select>
+                </label>
+                <button id="sim-wake" class="button secondary" type="button" disabled title="模拟 WakeNet 唤醒词命中，打断当前播放">唤醒词</button>
+              </div>
+            </div>
+            <div class="subpanel">
+              <div class="panel-header compact-header">
+                <div>
+                  <h3>汉字描红调试</h3>
+                  <p class="small-meta">直接输入单个汉字，先在 Web 端预览描红效果，也可以一键下发到在线硬件设备。</p>
+                </div>
+              </div>
+              <div class="form-grid trace-form-grid">
+                <label>
+                  <span class="label">汉字</span>
+                  <input id="trace-input" value="象" maxlength="1" />
+                </label>
+                <label>
+                  <span class="label">下发到硬件</span>
+                  <select id="trace-device-select"></select>
+                </label>
+              </div>
+              <div class="button-row">
+                <button id="trace-preview-web" class="button secondary" type="button">Web 预览</button>
+                <button id="trace-dispatch-hardware" class="button secondary" type="button">下发到真机</button>
+              </div>
+              <div class="trace-preview">
+                <canvas id="trace-canvas" width="240" height="284"></canvas>
+              </div>
+            </div>
+            <div class="subpanel gateway-log-panel">
+              <div class="panel-header compact-header">
+                <div>
+                  <h3>设备日志</h3>
+                  <p class="small-meta">记录 auth、收到的命令/事件、上行 audio_start/audio_end、播放与错误。</p>
+                </div>
+                <div class="button-row compact">
+                  <button id="sim-clear-log" class="button secondary" type="button">清空</button>
+                </div>
+              </div>
+              <div id="sim-log" class="log"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-memory">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>记忆管理</h2>
+                <p>查看、编辑和删除用户画像、对话轮次、长期摘要、结构化记忆与审计日志。</p>
+              </div>
+              <div class="button-row compact">
+                <button id="refresh-memory" class="button secondary">刷新</button>
+                <button id="save-memory-item" class="button primary">保存</button>
+              </div>
+            </div>
+            <div id="memory-banner" class="banner" hidden></div>
+            <div class="memory-toolbar">
+              <label>
+                <span class="label">用户</span>
+                <select id="memory-user-select"></select>
+              </label>
+              <div class="memory-section-tabs" aria-label="Memory sections">
+                <button class="memory-section-button active" data-memory-section="profile">用户画像</button>
+                <button class="memory-section-button" data-memory-section="turns">对话轮次</button>
+                <button class="memory-section-button" data-memory-section="vocabulary">生词表</button>
+                <button class="memory-section-button" data-memory-section="summaries">长期摘要</button>
+                <button class="memory-section-button" data-memory-section="entries">结构化记忆</button>
+                <button class="memory-section-button" data-memory-section="audit">审计日志</button>
+              </div>
+            </div>
+            <div class="memory-manager">
+              <aside class="memory-list-pane">
+                <ul id="memory-object-list" class="list"></ul>
+              </aside>
+              <section class="memory-editor-pane">
+                <div class="editor-meta" id="memory-editor-meta">请选择记忆对象</div>
+                <textarea id="memory-json-editor" class="json-editor" spellcheck="false"></textarea>
+                <div class="memory-editor-actions">
+                  <button id="delete-memory-item" class="button secondary">删除当前选中项</button>
+                  <button id="delete-all-turns" class="button danger" hidden>删除所有聊天记录</button>
+                  <span class="muted">只删除左侧列表当前选中的单条记录；用户画像和 Bot 画像请编辑字段后保存。</span>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel active" id="tab-vocab">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>生字管理</h2>
+                <p>批量录入生字，以田字格陈列预览，并可单个或批量下发到真机描红展示。</p>
+              </div>
+              <div class="button-row compact">
+                <button id="vocab-print" class="button secondary" type="button">打印</button>
+                <button id="vocab-import" class="button secondary" type="button">导入已问过的生词</button>
+                <button id="vocab-clear" class="button secondary vocab-clear-btn" type="button">清空</button>
+              </div>
+            </div>
+            <div class="vocab-search-bar">
+              <input id="vocab-search" type="search" placeholder="搜索汉字…" autocomplete="off" />
+              <span id="vocab-search-result" class="vocab-search-result"></span>
+            </div>
+
+            <div id="vocab-banner" class="banner" hidden></div>
+
+            <div class="vocab-group-bar">
+              <label>
+                <span class="label">当前分组</span>
+                <select id="vocab-group-select">
+                  <option value="一年级（下）生字" selected>一年级（下）生字</option>
+                </select>
+              </label>
+              <label>
+                <span class="label">状态筛选</span>
+                <select id="vocab-status-filter">
+                  <option value="all" selected>全部状态</option>
+                  <option value="unlearned">生字</option>
+                  <option value="new">不熟</option>
+                  <option value="learned">已会</option>
+                </select>
+              </label>
+              <label>
+                <span class="label">新建分组</span>
+                <input id="vocab-group-name" placeholder="例如：一年级（上）生字" />
+              </label>
+              <button id="vocab-group-create" class="button secondary" type="button">创建分组</button>
+              <button id="vocab-group-delete" class="button secondary vocab-desktop-only" type="button">删除分组</button>
+            </div>
+
+            <!-- 批量录入：粘贴一段文本，点「添加」后抽取其中的汉字、去重入网格 -->
+            <div class="subpanel vocab-section">
+              <div class="panel-header compact-header vocab-section-toggle">
+                <div>
+                  <h3>批量录入</h3>
+                  <p class="small-meta">在下方粘贴或输入文本，点「添加生字」会自动抽取其中的汉字、去重后加入田字格（非汉字字符会被过滤）。</p>
+                </div>
+                <span class="vocab-chevron"></span>
+              </div>
+              <div class="vocab-section-body">
+                <div class="vocab-input-row">
+                  <textarea id="vocab-input" class="vocab-textarea" rows="3" placeholder="例如：天地玄黄 宇宙洪荒，或直接粘贴一整段课文……"></textarea>
+                  <button id="vocab-add" class="button primary" type="button">添加生字</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 下发控制：选设备 + 批量下发；附进度状态行 -->
+            <div class="subpanel vocab-section">
+              <div class="panel-header compact-header vocab-section-toggle">
+                <div>
+                  <h3>下发到真机</h3>
+                  <p class="small-meta">选择在线设备后，可在每个字下方单独「下发」，或一键「全部下发」（仅下发有字形数据的字，自动节流）。</p>
+                </div>
+                <span class="vocab-chevron"></span>
+              </div>
+              <div class="vocab-section-body">
+                <div class="form-grid trace-form-grid">
+                  <label>
+                    <span class="label">下发到硬件</span>
+                    <select id="vocab-device-select"></select>
+                  </label>
+                </div>
+                <div class="button-row">
+                  <button id="vocab-dispatch-all" class="button primary" type="button">全部下发</button>
+                  <button id="vocab-generate-all" class="button secondary" type="button">全部生成解读</button>
+                  <span id="vocab-dispatch-status" class="muted"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 解读生成模版 -->
+            <div class="subpanel vocab-section">
+              <div class="panel-header compact-header vocab-section-toggle">
+                <div>
+                  <h3>解读生成模版</h3>
+                  <p class="small-meta">自定义「生成解读」时 AI 的生成要求，修改后自动保存，对后续新生成和重新生成生效。</p>
+                </div>
+                <span class="vocab-chevron"></span>
+              </div>
+              <div class="vocab-section-body">
+                <textarea id="vocab-prompt-template" class="vocab-textarea" rows="3" placeholder="先说这个字的常用组词，再说偏旁部首和拆解写法，最后给一段简单易于记忆的文案。"></textarea>
+              </div>
+            </div>
+
+            <!-- 田字格陈列区：每格一个带十字+对角虚线的方格 -->
+            <div class="subpanel vocab-section">
+              <div class="panel-header compact-header vocab-section-toggle">
+                <div>
+                  <h3>田字格陈列 <span id="vocab-count" class="muted"></span></h3>
+                  <p class="small-meta">每个字一个田字格；点击田字格可在本格预览描红动画；置灰并标注「无字形」的字表示暂无描红数据、不可下发。生成解读时会同时合成语音，点「试听」可在网页直接收听。</p>
+                </div>
+                <span class="vocab-chevron"></span>
+              </div>
+              <div class="vocab-section-body">
+                <div id="vocab-grid" class="vocab-grid"></div>
+                <p id="vocab-empty" class="muted">暂无生字，先在上方批量录入或导入已问过的生词。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-idiom">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>成语学习</h2>
+                <p>批量录入成语，以大字陈列预览，可生成成语解读与小故事，并下发到真机大字朗读。</p>
+              </div>
+              <div class="button-row compact">
+                <button id="idiom-print" class="button secondary" type="button">打印</button>
+                <button id="idiom-clear" class="button secondary vocab-clear-btn" type="button">清空</button>
+              </div>
+            </div>
+
+            <div id="idiom-banner" class="banner" hidden></div>
+
+            <div class="vocab-group-bar">
+              <label>
+                <span class="label">当前分组</span>
+                <select id="idiom-group-select">
+                  <option value="成语 · 第一批" selected>成语 · 第一批</option>
+                </select>
+              </label>
+              <label>
+                <span class="label">状态筛选</span>
+                <select id="idiom-status-filter">
+                  <option value="all" selected>全部状态</option>
+                  <option value="unlearned">未学</option>
+                  <option value="new">不熟</option>
+                  <option value="learned">已会</option>
+                </select>
+              </label>
+              <label>
+                <span class="label">新建分组</span>
+                <input id="idiom-group-name" placeholder="例如：成语 · 第二批" />
+              </label>
+              <button id="idiom-group-create" class="button secondary" type="button">创建分组</button>
+              <button id="idiom-group-delete" class="button secondary vocab-desktop-only" type="button">删除分组</button>
+            </div>
+
+            <!-- 批量录入：粘贴一段文本，点「添加」后抽取其中的成语、去重入网格 -->
+            <div class="subpanel vocab-section">
+              <div class="panel-header compact-header vocab-section-toggle">
+                <div>
+                  <h3>批量录入</h3>
+                  <p class="small-meta">在下方粘贴或输入文本（成语之间用空格、逗号或换行分隔），点「添加成语」会自动抽取其中由 2–8 个连续汉字组成的词条、去重后加入网格。</p>
+                </div>
+                <span class="vocab-chevron"></span>
+              </div>
+              <div class="vocab-section-body">
+                <div class="vocab-input-row">
+                  <textarea id="idiom-input" class="vocab-textarea" rows="3" placeholder="例如：守株待兔 画蛇添足 刻舟求剑，或每行一个成语……"></textarea>
+                  <button id="idiom-add" class="button primary" type="button">添加成语</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 下发控制：选设备 + 批量下发；附进度状态行 -->
+            <div class="subpanel vocab-section">
+              <div class="panel-header compact-header vocab-section-toggle">
+                <div>
+                  <h3>下发到真机</h3>
+                  <p class="small-meta">选择在线设备与朗读内容（解读 / 小故事）后，可在每个成语下方单独「下发」，或一键「全部下发」（自动节流）。下发后屏幕展示成语大字（2×2），并朗读所选内容。</p>
+                </div>
+                <span class="vocab-chevron"></span>
+              </div>
+              <div class="vocab-section-body">
+                <div class="form-grid trace-form-grid">
+                  <label>
+                    <span class="label">下发到硬件</span>
+                    <select id="idiom-device-select"></select>
+                  </label>
+                  <label>
+                    <span class="label">朗读内容</span>
+                    <select id="idiom-read-kind">
+                      <option value="explanation" selected>成语解读</option>
+                      <option value="story">成语小故事</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="button-row">
+                  <button id="idiom-dispatch-all" class="button primary" type="button">全部下发</button>
+                  <button id="idiom-generate-all" class="button secondary" type="button">全部生成</button>
+                  <span id="idiom-dispatch-status" class="muted"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 解读 / 故事 生成模版 -->
+            <div class="subpanel vocab-section">
+              <div class="panel-header compact-header vocab-section-toggle">
+                <div>
+                  <h3>生成模版</h3>
+                  <p class="small-meta">自定义「生成」时 AI 的要求，修改后自动保存，对后续新生成和重新生成生效。</p>
+                </div>
+                <span class="vocab-chevron"></span>
+              </div>
+              <div class="vocab-section-body">
+                <label class="idiom-template-label">
+                  <span class="label">解读模版</span>
+                  <textarea id="idiom-explanation-template" class="vocab-textarea" rows="2" placeholder="先说成语的意思，再说出处或用法，最后给一句简单好记的小结。"></textarea>
+                </label>
+                <label class="idiom-template-label">
+                  <span class="label">故事模版</span>
+                  <textarea id="idiom-story-template" class="vocab-textarea" rows="2" placeholder="用一个完整有趣、适合朗读给小朋友听的小故事，讲清楚这个成语的由来。"></textarea>
+                </label>
+              </div>
+            </div>
+
+            <!-- 成语大字陈列区：每张卡片展示一个成语（4 字 2×2 大字）+ 解读/故事 -->
+            <div class="subpanel vocab-section">
+              <div class="panel-header compact-header vocab-section-toggle">
+                <div>
+                  <h3>成语陈列 <span id="idiom-count" class="muted"></span></h3>
+                  <p class="small-meta">每个成语一张卡片，大字以楷体陈列（不带描红）；生成解读与小故事时会同时合成语音，点「试听解读 / 试听故事」可在网页直接收听。</p>
+                </div>
+                <span class="vocab-chevron"></span>
+              </div>
+              <div class="vocab-section-body">
+                <div id="idiom-grid" class="idiom-grid"></div>
+                <p id="idiom-empty" class="muted">暂无成语，先在上方批量录入。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-scenes">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>默认场景（通用对话）</h2>
+                <p>跨场景生效的基础人设：基础 system prompt + Bot 画像。意图场景人设叠加在其之上。</p>
+              </div>
+            </div>
+            <div id="scene-default-banner" class="banner" hidden></div>
+            <div class="subpanel">
+              <div class="panel-header compact-header">
+                <div>
+                  <h3>基础 system prompt</h3>
+                  <p class="small-meta">通用对话基线（如「面向小朋友、简短」）。<span id="scene-base-prompt-source" class="muted">--</span></p>
+                </div>
+                <div class="button-row compact">
+                  <button id="scene-base-prompt-save" class="button primary">保存</button>
+                </div>
+              </div>
+              <textarea
+                id="scene-base-system-prompt"
+                class="secret-editor"
+                placeholder="基础 system prompt（留空使用内置默认）"
+              ></textarea>
+            </div>
+            <div class="subpanel">
+              <div class="panel-header compact-header">
+                <div>
+                  <h3>Bot 画像</h3>
+                  <p class="small-meta">全局人设层（名称 / 角色画像 / 回复风格 / 自定义补充）。</p>
+                </div>
+                <div class="button-row compact">
+                  <button id="scene-botprofile-save" class="button primary">保存</button>
+                </div>
+              </div>
+              <label class="scene-checkbox">
+                <input type="checkbox" id="scene-botprofile-enabled" />
+                <span>启用 Bot 画像（注入对话人设）</span>
+              </label>
+              <label class="label" for="scene-botprofile-name">名称</label>
+              <input id="scene-botprofile-name" class="config-input" placeholder="例如 小豆老师" />
+              <label class="label" for="scene-botprofile-persona">角色画像</label>
+              <textarea id="scene-botprofile-persona" class="secret-editor" placeholder="角色设定 / 性格 / 背景"></textarea>
+              <label class="label" for="scene-botprofile-style">回复风格</label>
+              <textarea id="scene-botprofile-style" class="secret-editor" placeholder="语气 / 长度 / 措辞偏好"></textarea>
+              <label class="label" for="scene-botprofile-custom">自定义补充</label>
+              <textarea id="scene-botprofile-custom" class="secret-editor" placeholder="额外补充到 system prompt 的内容"></textarea>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>意图场景</h2>
+                <p>识别模糊口语指令进入专属人设场景，可语音进/出，进出有固定语音提示（服务端缓存）。</p>
+              </div>
+            </div>
+            <div id="scene-list" class="scene-list"></div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-settings">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>模型配置</h2>
+                <p>运行态 model、base URL、API key 与 prompt。</p>
+              </div>
+              <div class="button-row compact">
+                <button id="llm-edit-toggle" class="button secondary">编辑</button>
+                <button id="llm-visibility-toggle" class="button secondary">显示</button>
+                <button id="llm-save" class="button primary" hidden>保存</button>
+                <button id="llm-cancel" class="button secondary" hidden>取消</button>
+              </div>
+            </div>
+            <div id="llm-banner" class="banner" hidden></div>
+            <div class="config-grid">
+              <div class="config-field">
+                <span class="label">model source</span>
+                <strong id="llm-model-source">--</strong>
+              </div>
+              <div class="config-field">
+                <span class="label">base url source</span>
+                <strong id="llm-base-url-source">--</strong>
+              </div>
+              <div class="config-field">
+                <span class="label">api key source</span>
+                <strong id="llm-api-key-source">--</strong>
+              </div>
+              <div class="config-field">
+                <span class="label">user prompt source</span>
+                <strong id="llm-user-prompt-source">--</strong>
+              </div>
+              <div class="config-field">
+                <span class="label">configured</span>
+                <strong id="llm-api-key-configured">false</strong>
+              </div>
+            </div>
+            <label class="label" for="llm-model-input">llm model</label>
+            <input
+              id="llm-model-input"
+              class="config-input"
+              placeholder="例如 doubao-seed-2-0-mini-260428"
+            />
+            <label class="label" for="llm-base-url-input">llm api base url</label>
+            <input
+              id="llm-base-url-input"
+              class="config-input"
+              placeholder="例如 https://ark.cn-beijing.volces.com/api/v3"
+            />
+            <p class="small-meta">基础人设（system prompt）与 Bot 画像、各意图场景人设已统一迁至左侧「场景」页签。</p>
+            <label class="label" for="llm-user-prompt-input">user prompt template</label>
+            <textarea
+              id="llm-user-prompt-input"
+              class="secret-editor"
+              placeholder="支持变量 {user_id} / {user_text} / {memory_block}"
+            ></textarea>
+            <label class="label" for="llm-api-key-input">llm api key</label>
+            <div id="llm-api-key-display" class="secret-box">--</div>
+            <textarea
+              id="llm-api-key-input"
+              class="secret-editor"
+              hidden
+              spellcheck="false"
+              placeholder="输入大模型 API key"
+            ></textarea>
+          </div>
+          <div class="subpanel">
+            <div class="panel-header compact-header">
+              <div>
+                <h3>语音配置（ASR/TTS）</h3>
+                <p class="small-meta">Web 端联调使用，支持隐藏/显示与编辑。配置保存后下一轮输入自动生效，无需重连。</p>
+              </div>
+              <div class="button-row compact">
+                <button id="speech-edit-toggle" class="button secondary">编辑</button>
+                <button id="speech-visibility-toggle" class="button secondary">显示</button>
+                <button id="speech-save" class="button primary" hidden>保存</button>
+                <button id="speech-cancel" class="button secondary" hidden>取消</button>
+              </div>
+            </div>
+            <div id="speech-banner" class="banner" hidden></div>
+            <div class="config-grid">
+              <div class="config-field">
+                <span class="label">asr source</span>
+                <strong id="speech-asr-source">--</strong>
+              </div>
+              <div class="config-field">
+                <span class="label">asr resource source</span>
+                <strong id="speech-asr-resource-source">--</strong>
+              </div>
+              <div class="config-field">
+                <span class="label">tts source</span>
+                <strong id="speech-tts-source">--</strong>
+              </div>
+              <div class="config-field">
+                <span class="label">tts voice source</span>
+                <strong id="speech-tts-voice-source">--</strong>
+              </div>
+              <div class="config-field">
+                <span class="label">tts sample rate</span>
+                <strong id="speech-tts-sample-rate">16000</strong>
+              </div>
+              <div class="config-field">
+                <span class="label">configured</span>
+                <strong id="speech-api-key-configured">false</strong>
+              </div>
+            </div>
+            <h3 class="section-title">流式语音识别 2.0</h3>
+            <label class="label" for="speech-asr-ws-url-input">ASR ws url</label>
+            <input
+              id="speech-asr-ws-url-input"
+              class="config-input"
+              placeholder="wss://openspeech.bytedance.com/api/v3/sauc/bigmodel"
+            />
+            <label class="label" for="speech-asr-resource-id-input">ASR resource id</label>
+            <input
+              id="speech-asr-resource-id-input"
+              class="config-input"
+              placeholder="volc.bigasr.sauc.duration"
+            />
+            <p class="small-meta">Web 端录音采集 16k PCM，后端通过 WebSocket 双向流式实时识别并增量上屏。资源 ID 小时版 volc.bigasr.sauc.duration / 并发版 volc.bigasr.sauc.concurrent。</p>
+            <label class="label" for="speech-asr-token-input">ASR api key（X-Api-Key）</label>
+            <div id="speech-asr-key-display" class="secret-box">--</div>
+            <textarea
+              id="speech-asr-token-input"
+              class="secret-editor"
+              hidden
+              spellcheck="false"
+              placeholder="输入火山语音新版控制台 Speech API Key"
+            ></textarea>
+            <p class="small-meta">仅支持新版控制台 X-Api-Key 鉴权，请填写火山语音控制台的 Speech API Key（不是 Ark/LLM API Key）。</p>
+            <h3 class="section-title">语音合成 1.0（V3 单向流式）</h3>
+            <label class="label" for="speech-tts-ws-url-input">TTS ws url</label>
+            <input
+              id="speech-tts-ws-url-input"
+              class="config-input"
+              placeholder="wss://openspeech.bytedance.com/api/v3/tts/unidirectional/stream"
+            />
+            <label class="label" for="speech-tts-resource-id-input">TTS resource id</label>
+            <input
+              id="speech-tts-resource-id-input"
+              class="config-input"
+              placeholder="seed-tts-1.0"
+            />
+            <label class="label" for="speech-tts-voice-input">TTS voice type</label>
+            <input
+              id="speech-tts-voice-input"
+              class="config-input"
+              placeholder="zh_female_vv_jupiter_bigtts"
+            />
+            <label class="label" for="speech-tts-encoding-input">TTS encoding</label>
+            <input
+              id="speech-tts-encoding-input"
+              class="config-input"
+              placeholder="pcm"
+            />
+            <label class="label" for="speech-tts-sample-rate-input">TTS sample rate</label>
+            <input
+              id="speech-tts-sample-rate-input"
+              class="config-input"
+              type="number"
+              min="8000"
+              max="48000"
+              step="1000"
+              placeholder="16000"
+            />
+            <p class="small-meta">V3 单向流式：整段文本送入、服务端边合成边流式返回 PCM，首字更快。仅支持新版控制台 X-Api-Key 鉴权。</p>
+            <label class="label" for="speech-tts-token-input">TTS api key（X-Api-Key）</label>
+            <div id="speech-tts-token-display" class="secret-box">--</div>
+            <textarea
+              id="speech-tts-token-input"
+              class="secret-editor"
+              hidden
+              spellcheck="false"
+              placeholder="输入火山语音新版控制台 Speech API Key"
+            ></textarea>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-metrics">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Token 统计</h2>
+                <p>查看总量与按维度拆分（用户 / 场景 / 厂商 / 模型）。</p>
+              </div>
+              <div class="button-row compact">
+                <button id="refresh-metrics" class="button secondary">刷新</button>
+              </div>
+            </div>
+            <div id="metrics-banner" class="banner" hidden></div>
+            <div class="form-grid metrics-grid">
+              <label>
+                <span class="label">时间范围（天）</span>
+                <input id="metrics-days" type="number" min="1" max="90" value="7" />
+              </label>
+              <label>
+                <span class="label">group_by</span>
+                <input
+                  id="metrics-group-by"
+                  value="user_id,scenario,vendor"
+                  placeholder="例如 user_id,scenario,vendor 或 vendor,model"
+                />
+              </label>
+              <label>
+                <span class="label">输入单价（元/百万 token）</span>
+                <input id="metrics-in-price" type="number" step="0.0001" value="0.2" />
+              </label>
+              <label>
+                <span class="label">输出单价（元/百万 token）</span>
+                <input id="metrics-out-price" type="number" step="0.0001" value="2" />
+              </label>
+              <label>
+                <span class="label">ASR 单价（元/小时）</span>
+                <input id="metrics-asr-hour-price" type="number" step="0.01" value="4.5" />
+              </label>
+              <label>
+                <span class="label">TTS 单价（元/万字符）</span>
+                <input id="metrics-tts-10k-price" type="number" step="0.01" value="5" />
+              </label>
+              <label>
+                <span class="label">预算（元，可选）</span>
+                <input id="metrics-budget" type="number" step="0.01" placeholder="例如 100" />
+              </label>
+            </div>
+            <p class="small-meta metrics-cost-disclaimer">
+              <span id="metrics-models-note">统计期间模型：--</span>。输入/ 输出默认值仅是 Doubao-Seed-2.0-mini 刊例价示例；当前模型为 DeepSeek 或其他端点时必须按账单手动修改。费用按当前手动输入的 LLM / ASR / TTS 单价估算，不代表供应商账单；语音统计从本版本新增的审计事件开始累计。
+              <span id="metrics-voice-coverage">语音指标：--</span>
+            </p>
+            <div class="status-grid metrics-summary">
+              <div class="stat-card">
+                <span class="label">云模型请求</span>
+                <strong id="metrics-total-calls">--</strong>
+              </div>
+              <div class="stat-card metrics-health-card" id="metrics-success-card">
+                <span class="label">云模型成功率</span>
+                <strong id="metrics-success-rate">--</strong>
+                <span class="small-meta" id="metrics-success-breakdown">--</span>
+              </div>
+              <div class="stat-card">
+                <span class="label">平均延迟</span>
+                <strong id="metrics-avg-latency">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">P95 延迟</span>
+                <strong id="metrics-p95-latency">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">平均 prompt tokens</span>
+                <strong id="metrics-avg-prompt-tokens">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">prompt tokens</span>
+                <strong id="metrics-total-prompt">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">completion tokens</span>
+                <strong id="metrics-total-completion">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">total tokens</span>
+                <strong id="metrics-total-tokens">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">LLM 估算费用（元）</span>
+                <strong id="metrics-llm-cost">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">ASR 计费时长</span>
+                <strong id="metrics-asr-seconds">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">TTS 计费字符</span>
+                <strong id="metrics-tts-billable-chars">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">TTS 缓存命中率</span>
+                <strong id="metrics-tts-cache-rate">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">TTS 缓存节省（元）</span>
+                <strong id="metrics-tts-cache-saving">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">总估算费用（元）</span>
+                <strong id="metrics-total-cost">--</strong>
+              </div>
+              <div class="stat-card">
+                <span class="label">remaining budget (CNY)</span>
+                <strong id="metrics-remaining-budget">--</strong>
+              </div>
+            </div>
+            <div class="subpanel metrics-charts-wrap">
+              <div class="panel-header compact-header">
+                <h3>每日趋势</h3>
+              </div>
+              <div class="metrics-chart-row">
+                <div class="metrics-chart-box">
+                  <h4>调用次数</h4>
+                  <canvas id="chart-daily-calls" width="560" height="260"></canvas>
+                </div>
+                <div class="metrics-chart-box">
+                  <h4>Token 用量</h4>
+                  <canvas id="chart-daily-tokens" width="560" height="260"></canvas>
+                </div>
+              </div>
+              <div class="metrics-chart-row">
+                <div class="metrics-chart-box">
+                  <h4>场景调用占比</h4>
+                  <canvas id="chart-scenario-calls" width="320" height="280"></canvas>
+                </div>
+                <div class="metrics-chart-box">
+                  <h4>场景 Token 占比</h4>
+                  <canvas id="chart-scenario-tokens" width="320" height="280"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="subpanel metrics-table-wrap">
+              <div class="panel-header compact-header">
+                <h3>Breakdown</h3>
+                <span class="small-meta" id="metrics-table-meta">--</span>
+              </div>
+              <div class="table" id="metrics-table"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="print-overlay" class="print-overlay" hidden></div>
+    <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+    <script src="/console/assets/app.js?v=20260712-aurora"></script>
+    <script src="/console/assets/provisioning.js?v=20260612"></script>
+  </body>
+</html>

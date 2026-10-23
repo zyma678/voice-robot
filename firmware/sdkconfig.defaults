@@ -1,0 +1,72 @@
+# Target chip
+CONFIG_IDF_TARGET="esp32s3"
+
+# 16MB board; configured to 8MB (thin client: single 4MB factory app, no storage)
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
+
+# Custom partition table: nvs + 4MB factory app (Opus encoder), no data partition (ADR 0005)
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# Logging via the built-in USB Serial JTAG (no UART USB-bridge on this board)
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# Wi-Fi station only — no AP/SoftAP
+CONFIG_ESP_WIFI_ENABLED=y
+
+# Reduce HTTP/WS heap pressure
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
+CONFIG_HTTPD_MAX_URI_LEN=512
+
+# BLE fallback: Wi-Fi remains preferred, BLE is used when phone gateway is needed
+CONFIG_BT_ENABLED=y
+CONFIG_BT_BLUEDROID_ENABLED=n
+CONFIG_BT_NIMBLE_ENABLED=y
+# Keep the custom phone-gateway BLE service small enough to coexist with
+# LCD/LVGL, audio, Wi-Fi, and Hanzi tracing on the ESP32-S3.
+# CONFIG_BT_NIMBLE_MEM_ALLOC_MODE_INTERNAL is not set
+CONFIG_BT_NIMBLE_MEM_ALLOC_MODE_EXTERNAL=y
+# CONFIG_BT_NIMBLE_ROLE_CENTRAL is not set
+CONFIG_BT_NIMBLE_ROLE_PERIPHERAL=y
+CONFIG_BT_NIMBLE_ROLE_BROADCASTER=y
+# CONFIG_BT_NIMBLE_ROLE_OBSERVER is not set
+CONFIG_BT_NIMBLE_GATT_SERVER=y
+CONFIG_BT_NIMBLE_MAX_CONNECTIONS=1
+
+# LVGL UI: built-in fonts (montserrat for latin/symbols, Source Han Sans for CJK)
+CONFIG_LV_FONT_MONTSERRAT_14=y
+CONFIG_LV_FONT_MONTSERRAT_28=y
+CONFIG_LV_FONT_SOURCE_HAN_SANS_SC_16_CJK=y
+
+# BLE Wi-Fi provisioning (network_provisioning, security 1 + PoP)
+CONFIG_ESP_PROTOCOMM_SUPPORT_SECURITY_VERSION_1=y
+
+# Waveshare ESP32-S3-Touch-LCD-1.83 has 8MB octal PSRAM. The CJK font, LVGL,
+# WebSocket chunks, and filled Hanzi tracing buffers do not fit reliably in
+# internal SRAM once Bluetooth is also enabled.
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=16384
+CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=65536
+
+# TLS CA bundle so the WebSocket client can verify wss:// (e.g. wss://<domain>/ws
+# behind Caddy/Let's Encrypt). esp_crt_bundle_attach in ws_client.c needs this.
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_FULL=y
+CONFIG_LV_FONT_FMT_TXT_LARGE=y
+CONFIG_LV_USE_FONT_COMPRESSED=y
+
+# Balance response speed and recognition completeness: 320ms avoids cutting a
+# child's natural mid-sentence pause while remaining well below the 800ms PRD cap.
+CONFIG_VR_VAD_END_SILENCE_MS=320
+# Thinking watchdog: 12s covers the observed LLM P95 while llm_reply progress
+# refreshes the window before buffered TTS preparation. Server errors still
+# re-arm immediately, so a failed request does not wait for the watchdog.
+CONFIG_VR_THINKING_TIMEOUT_MS=12000
+
+# Backend endpoints belong in the ignored sdkconfig.defaults.local file. The
+# root .env plus scripts/flash_firmware.sh generates that local override.
+CONFIG_VR_WS_URL=""

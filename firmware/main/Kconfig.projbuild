@@ -1,0 +1,185 @@
+menu "Voice Robot M0 Configuration"
+
+    config VR_WIFI_SSID
+        string "Wi-Fi SSID"
+        default ""
+        help
+            Wi-Fi SSID the device will join. Set it through menuconfig or
+            the repository .env file plus scripts/flash_firmware.sh.
+
+    config VR_WIFI_PASSWORD
+        string "Wi-Fi Password"
+        default ""
+        help
+            Wi-Fi password.
+
+    config VR_WIFI_HOTSPOT_SSID
+        string "Optional second Wi-Fi SSID"
+        default ""
+        help
+            Optional second network available from the device settings screen.
+
+    config VR_WIFI_HOTSPOT_PASSWORD
+        string "Optional second Wi-Fi password"
+        default ""
+        help
+            Password for the optional second network.
+
+    config VR_WS_URL
+        string "Backend WebSocket URL"
+        default ""
+        help
+            Full WebSocket URL of the voice-robot backend.
+            Example: ws://192.0.2.10:8090/ws. Configure the actual endpoint
+            for your LAN or deployment before flashing.
+
+    config VR_CLOUD_WS_URL
+        string "Optional cloud WebSocket URL"
+        default ""
+        help
+            Optional second backend selected by the on-device local/cloud
+            switch. Leave empty when only one backend is used.
+
+    config VR_DEVICE_ID
+        string "Device ID"
+        default "esp32-001"
+        help
+            Identity used during /ws auth. Anything other than "web-console"
+            is treated as a hardware device by the backend.
+
+    config VR_AUTH_TOKEN
+        string "Auth Token"
+        default ""
+        help
+            Must match VOICE_ROBOT_AUTH_TOKEN on the server side.
+
+    config VR_HEARTBEAT_INTERVAL_MS
+        int "Heartbeat interval (ms)"
+        range 1000 60000
+        default 15000
+        help
+            Interval at which the device sends a heartbeat after auth_ok.
+
+    config VR_BOARD_UI_ENABLE
+        bool "Enable Waveshare 1.83-inch LCD status UI"
+        default n
+        help
+            Enable the real ST7789 LCD status UI for Waveshare
+            ESP32-S3-Touch-LCD-1.83 using ESP-IDF's built-in esp_lcd driver.
+            When disabled, the firmware still reports UI state through logs.
+            Touch input is planned for the next firmware step.
+
+    config VR_BLE_FALLBACK_ENABLE
+        bool "Enable BLE mobile gateway fallback"
+        default y
+        help
+            When Wi-Fi cannot connect, start a BLE Peripheral control/status
+            service so a phone can act as the cloud gateway. First-stage
+            fallback supports lightweight control commands such as set_volume;
+            full BLE audio forwarding is planned separately.
+
+    choice VR_UPLINK_CODEC
+        prompt "Uplink audio codec"
+        default VR_UPLINK_CODEC_PCM
+        help
+            Codec for microphone audio sent to the backend. PCM is simplest and
+            lets the backend stream partial ASR. Opus cuts uplink bandwidth ~16x
+            (good for weak Wi-Fi / future BLE audio) at the cost of CPU and the
+            libopus encoder in flash; the backend re-wraps raw frames as Ogg.
+
+        config VR_UPLINK_CODEC_PCM
+            bool "PCM s16le (16kHz mono)"
+        config VR_UPLINK_CODEC_OPUS
+            bool "Opus (raw 20ms frames, 16kbps)"
+    endchoice
+
+    config VR_OPUS_BITRATE
+        int "Opus uplink bitrate (bps)"
+        depends on VR_UPLINK_CODEC_OPUS
+        range 8000 32000
+        default 16000
+        help
+            Target bitrate for the Opus encoder. 16kbps is a good speech default.
+
+    config VR_USER_ID
+        string "Conversation user ID"
+        default "default-user"
+        help
+            user_id attached to upstream audio_start/text_input messages.
+            Selects whose memory/profile the backend agent uses.
+
+    config VR_GREETING_TEXT
+        string "Conversation-mode greeting text"
+        default ""
+        help
+            When non-empty, entering conversation mode sends this as a
+            text_input turn so the bot speaks a greeting first. Empty
+            disables the greeting and starts listening immediately.
+
+    config VR_VAD_START_THRESHOLD
+        int "VAD speech start threshold (mean abs amplitude)"
+        range 50 20000
+        default 250
+        help
+            20ms frames with mean |sample| at/above this value count as
+            voiced. Three consecutive voiced frames start an utterance.
+            Tuned for the ES7210 path at analog PGA +37.5dB, digital gain ×1
+            (audio_capture CAPTURE_SW_GAIN): speech avg-abs ~1000, noise ~75.
+
+    config VR_VAD_END_THRESHOLD
+        int "VAD speech end threshold (mean abs amplitude)"
+        range 50 20000
+        default 120
+        help
+            Frames below this value count as silence while in speech.
+
+    config VR_VAD_END_SILENCE_MS
+        int "VAD trailing silence to end utterance (ms)"
+        range 200 2000
+        default 240
+        help
+            Trailing silence after speech that closes the utterance and
+            sends audio_end. PRD 11.13 requires <= 800ms. Shorter feels
+            snappier (bot reacts sooner after you stop); too short cuts off
+            mid-sentence pauses.
+
+    config VR_PROV_POP
+        string "BLE provisioning proof-of-possession"
+        default ""
+        help
+            Proof-of-possession string the phone must present during BLE
+            Wi-Fi provisioning (security level 1). Configure a unique value
+            before enabling provisioning. Service name is
+            PROV_<device_id>; leave VR_WIFI_SSID empty to enter
+            provisioning mode on first boot.
+
+    config VR_FULL_DUPLEX
+        bool "Full-duplex conversation (barge-in during playback)"
+        default n
+        help
+            Keep the mic open during TTS playback so the user can interrupt
+            mid-sentence (ADR 0002). REQUIRES an upstream AEC (esp-sr AFE)
+            feeding echo-cancelled frames into the conversation machine — with
+            the raw mic the speaker's own voice self-triggers. Leave OFF until
+            AEC is integrated and tuned on real hardware; the default half-duplex
+            path is the validated one.
+
+    config VR_BARGE_GUARD_MS
+        int "Full-duplex barge-in guard window (ms)"
+        depends on VR_FULL_DUPLEX
+        range 0 1000
+        default 260
+        help
+            Ignore barge-in for this long after playback starts, to skip AEC
+            convergence transients.
+
+    config VR_THINKING_TIMEOUT_MS
+        int "Conversation thinking watchdog (ms)"
+        range 5000 60000
+        default 12000
+        help
+            If no reply progress or TTS starts within this window,
+            conversation mode re-arms listening instead of hanging. LLM reply
+            events refresh this bounded watchdog before TTS preparation.
+
+endmenu

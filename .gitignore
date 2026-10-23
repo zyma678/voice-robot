@@ -1,0 +1,42 @@
+# DoubaoADK
+.doubaoadk/
+.mcp.json
+specs/
+.coco/
+.claude/
+.venv/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+*.egg-info/
+runtime/
+
+# Build outputs / generated files
+firmware/build*/
+firmware/.cache/
+firmware/managed_components/
+firmware/dependencies.lock
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/sdkconfig.defaults.local
+*.bak
+build/
+dist/
+node_modules/
+
+# Legacy deploy secret location
+deploy/.env
+
+# Local design/tooling artifacts
+.cc-connect/
+.superpowers/
+
+# OS / editor noise
+.DS_Store
+**/.DS_Store
+.pytest_cache/
+
+
+.trae/

@@ -1,0 +1,39 @@
+idf_component_register(
+    SRCS
+        "app_main.c"
+        "audio_capture.c"
+        "audio_playback.c"
+        "battery.c"
+        "ble_gateway.c"
+        "conversation.c"
+        "display_lcd.c"
+        "es7210_codec.c"
+        "es8311_codec.c"
+        "face_eyes_sprites.c"
+        "face_mouth_sprites.c"
+        "butterfly_sprites.c"
+        "i2c_bus.c"
+        "lv_font_cjk_sc_16.c"
+        "opus_encoder.c"
+        "ui_screen.c"
+        "ui_state.c"
+        "vad.c"
+        "wifi_client.c"
+        "ws_client.c"
+    INCLUDE_DIRS "."
+    REQUIRES
+        nvs_flash
+        esp_wifi
+        esp_event
+        esp_lcd
+        esp_netif
+        esp_websocket_client
+        bt
+        esp_timer
+        esp_driver_gpio
+        esp_driver_i2c
+        esp_driver_i2s
+        esp_driver_spi
+        esp-tls
+        mbedtls
+)

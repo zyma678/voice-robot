@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1040" viewBox="0 0 1680 1040" font-family="'PingFang SC','Microsoft YaHei','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f1320"/>
+      <stop offset="1" stop-color="#161b2e"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 Z" fill="#7aa2ff"/>
+    </marker>
+    <marker id="arrowG" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 Z" fill="#5fd0a8"/>
+    </marker>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="1680" height="1040" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="48" y="60" fill="#eaf0ff" font-size="34" font-weight="700">【个性化智能学习硬件】· 端云协同架构总览</text>
+  <text x="48" y="92" fill="#8a93ad" font-size="18">ESP32-S3 瘦客户端  ⇄  /ws 长连接  ⇄  云端单一权威（ASR · LLM Agent · TTS · 记忆 · 场景）</text>
+
+  <!-- ===================== DEVICE ===================== -->
+  <g filter="url(#sh)">
+    <rect x="48" y="140" width="430" height="720" rx="18" fill="#1b2238" stroke="#33406b" stroke-width="1.5"/>
+  </g>
+  <text x="72" y="182" fill="#7aa2ff" font-size="22" font-weight="700">ESP32-S3 瘦客户端</text>
+  <text x="72" y="208" fill="#737d99" font-size="15">ESP-IDF + LVGL 9.5 · 双核240MHz · 内部RAM紧张</text>
+
+  <g font-size="17" fill="#dde4f5">
+    <rect x="72" y="232" width="382" height="84" rx="12" fill="#222b47" stroke="#3a466f"/>
+    <text x="92" y="262" font-weight="600" fill="#fff">双麦采音 + 本地 VAD</text>
+    <text x="92" y="289" font-size="14" fill="#9aa3bd">能量VAD · 自适应噪声基底 · 「收听中」端侧驱动</text>
+
+    <rect x="72" y="332" width="382" height="84" rx="12" fill="#222b47" stroke="#3a466f"/>
+    <text x="92" y="362" font-weight="600" fill="#fff">WebSocket 客户端 + 自动重连</text>
+    <text x="92" y="389" font-size="14" fill="#9aa3bd">2s重连 · GOT_IP主动踢 · Wi-Fi永不放弃 · 60s兜底reboot</text>
+
+    <rect x="72" y="432" width="382" height="84" rx="12" fill="#222b47" stroke="#3a466f"/>
+    <text x="92" y="462" font-weight="600" fill="#fff">喇叭播放 TTS（ES8311）</text>
+    <text x="92" y="489" font-size="14" fill="#9aa3bd">32KB队列 · 200ms预缓冲 · 0.8×衰减 · RX陈旧帧flush</text>
+
+    <rect x="72" y="532" width="382" height="120" rx="12" fill="#222b47" stroke="#3a466f"/>
+    <text x="92" y="562" font-weight="600" fill="#fff">LVGL 显示</text>
+    <text x="92" y="589" font-size="14" fill="#9aa3bd">彩虹蝴蝶（recolor + HSV色相循环）/ 经典脸</text>
+    <text x="92" y="612" font-size="14" fill="#9aa3bd">汉字描红（楷体逐笔扫描填充）</text>
+    <text x="92" y="635" font-size="14" fill="#9aa3bd">成语 2×2 大字 · 触摸退出</text>
+
+    <rect x="72" y="668" width="382" height="64" rx="12" fill="#222b47" stroke="#3a466f"/>
+    <text x="92" y="698" font-weight="600" fill="#fff">NVS 配置</text>
+    <text x="92" y="720" font-size="14" fill="#9aa3bd">ws_env(local/cloud) · ui_style · 音量</text>
+
+    <rect x="72" y="748" width="382" height="64" rx="12" fill="#221d33" stroke="#4a3a6f"/>
+    <text x="92" y="778" font-weight="600" fill="#cdb6ff">BLE 配网 / 网关回退</text>
+    <text x="92" y="800" font-size="14" fill="#9aa3bd">仅 Wi-Fi 失败兜底（共存OOM规避）</text>
+  </g>
+
+  <!-- ===================== CLOUD ===================== -->
+  <g filter="url(#sh)">
+    <rect x="600" y="140" width="640" height="720" rx="18" fill="#15243a" stroke="#2f5079" stroke-width="1.5"/>
+  </g>
+  <text x="624" y="182" fill="#5fd0a8" font-size="22" font-weight="700">云端 · FastAPI 单一权威（ADR 0005）</text>
+  <text x="624" y="208" fill="#737d99" font-size="15">编排 + 记忆只此一份 Python 实现 · 火山ECS + Docker + Caddy(WSS)</text>
+
+  <!-- ws endpoint -->
+  <rect x="624" y="232" width="592" height="70" rx="12" fill="#1c3350" stroke="#356092"/>
+  <text x="644" y="262" font-size="17" font-weight="600" fill="#fff">/ws 端点 + 会话主循环（recv_loop）</text>
+  <text x="644" y="287" font-size="14" fill="#9aa3bd">auth → audio_start → 音频帧 → audio_end ｜ 段级容错：ASR失败不断连(ADR 0001)</text>
+
+  <!-- Agent -->
+  <rect x="624" y="320" width="592" height="96" rx="12" fill="#1c3350" stroke="#356092"/>
+  <text x="644" y="350" font-size="17" font-weight="600" fill="#fff">Agent 编排（LangGraph）</text>
+  <text x="644" y="376" font-size="14" fill="#9aa3bd">记忆检索 → 组装Prompt → LLM → 安全拦截 → 回复 / 工具</text>
+  <text x="644" y="400" font-size="14" fill="#9aa3bd">未配置 key 时本地兜底回复，绝不裸断</text>
+
+  <!-- three services -->
+  <rect x="624" y="436" width="188" height="92" rx="12" fill="#203a2f" stroke="#3c7a5c"/>
+  <text x="644" y="466" font-size="16" font-weight="600" fill="#fff">流式 ASR</text>
+  <text x="644" y="490" font-size="13" fill="#9aa3bd">火山 sauc</text>
+  <text x="644" y="510" font-size="13" fill="#9aa3bd">首包~200ms · 热词偏置</text>
+
+  <rect x="826" y="436" width="188" height="92" rx="12" fill="#203a2f" stroke="#3c7a5c"/>
+  <text x="846" y="466" font-size="16" font-weight="600" fill="#fff">LLM</text>
+  <text x="846" y="490" font-size="13" fill="#9aa3bd">Doubao / 火山 Ark</text>
+  <text x="846" y="510" font-size="13" fill="#9aa3bd">运行态可配 key/model</text>
+
+  <rect x="1028" y="436" width="188" height="92" rx="12" fill="#203a2f" stroke="#3c7a5c"/>
+  <text x="1048" y="466" font-size="16" font-weight="600" fill="#fff">流式 TTS</text>
+  <text x="1048" y="490" font-size="13" fill="#9aa3bd">seed-tts V3</text>
+  <text x="1048" y="510" font-size="13" fill="#9aa3bd">儿童音色 · 流式回包</text>
+
+  <!-- scene framework -->
+  <rect x="624" y="548" width="592" height="96" rx="12" fill="#33263f" stroke="#6b4a86"/>
+  <text x="644" y="578" font-size="17" font-weight="600" fill="#fff">意图场景框架（ADR 0008）</text>
+  <text x="644" y="604" font-size="14" fill="#9aa3bd">关键词优先 + LLM兜底 ｜ 单连接内存态 ｜ 提示音 PCM sidecar 零Token</text>
+  <text x="644" y="628" font-size="14" fill="#9aa3bd">英语老师(persona) · 汉字/成语(action) · 加配置即扩展</text>
+
+  <!-- memory -->
+  <rect x="624" y="664" width="592" height="96" rx="12" fill="#2a2640" stroke="#4f4a86"/>
+  <text x="644" y="694" font-size="17" font-weight="600" fill="#fff">文件型记忆系统（零依赖 · 可Git追踪）</text>
+  <text x="644" y="720" font-size="14" fill="#9aa3bd">会话轮次 · 最近20轮滚动窗口 · 窗口外压缩长期摘要 · 用户画像抽取</text>
+  <text x="644" y="744" font-size="14" fill="#9aa3bd">conversations / summaries / profiles / audit（runtime/）</text>
+
+  <!-- token/metrics -->
+  <rect x="624" y="780" width="592" height="56" rx="12" fill="#1c3350" stroke="#356092"/>
+  <text x="644" y="814" font-size="15" fill="#dde4f5">指标：按场景 Token 用量看板（token_usage_store）· 审计事件流（SSE）</text>
+
+  <!-- ===================== EXTERNAL CLOUD ===================== -->
+  <g filter="url(#sh)">
+    <rect x="1300" y="232" width="332" height="300" rx="18" fill="#20283f" stroke="#3a466f" stroke-width="1.5"/>
+  </g>
+  <text x="1324" y="272" fill="#e0a85f" font-size="20" font-weight="700">外部能力（火山引擎）</text>
+  <rect x="1324" y="296" width="284" height="64" rx="10" fill="#2a2740" stroke="#5a4a3a"/>
+  <text x="1344" y="324" font-size="15" fill="#fff">豆包流式 ASR 2.0</text>
+  <text x="1344" y="346" font-size="13" fill="#9aa3bd">¥1/小时 · 中英混合</text>
+  <rect x="1324" y="372" width="284" height="64" rx="10" fill="#2a2740" stroke="#5a4a3a"/>
+  <text x="1344" y="400" font-size="15" fill="#fff">豆包语音合成 2.0 (V3)</text>
+  <text x="1344" y="422" font-size="13" fill="#9aa3bd">¥5/万字符 · 儿童音色</text>
+  <rect x="1324" y="448" width="284" height="64" rx="10" fill="#2a2740" stroke="#5a4a3a"/>
+  <text x="1344" y="476" font-size="15" fill="#fff">Doubao-Seed LLM (Ark)</text>
+  <text x="1344" y="498" font-size="13" fill="#9aa3bd">¥0.2/百万token(入)</text>
+
+  <!-- streaming voice link note -->
+  <rect x="1300" y="556" width="332" height="78" rx="12" fill="#1b2238" stroke="#3c7a5c"/>
+  <text x="1324" y="584" font-size="15" font-weight="600" fill="#5fd0a8">流式语音链路（主动外连）</text>
+  <text x="1324" y="607" font-size="13" fill="#9aa3bd">双向流式 ASR · 单向流式 TTS(V3)</text>
+  <text x="1324" y="626" font-size="13" fill="#9aa3bd">直连 openspeech，无需公网回源</text>
+
+  <!-- ===================== CONSOLE ===================== -->
+  <g filter="url(#sh)">
+    <rect x="600" y="900" width="640" height="110" rx="18" fill="#1b2238" stroke="#33406b" stroke-width="1.5"/>
+  </g>
+  <text x="624" y="940" fill="#7aa2ff" font-size="20" font-weight="700">家长 Web 控制台（/console · 纯静态）</text>
+  <text x="624" y="970" font-size="15" fill="#dde4f5">生字管理 + A4打印 · 成语建库 · 场景配置 · 记忆管理 · 模型/Token</text>
+  <text x="624" y="994" font-size="13" fill="#9aa3bd">device_id == "web-console" 走同一套 /ws 协议 + /api/*</text>
+
+  <!-- ===================== CONNECTIONS ===================== -->
+  <!-- device <-> cloud /ws -->
+  <line x1="478" y1="270" x2="600" y2="270" stroke="#7aa2ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="600" y1="300" x2="478" y2="300" stroke="#7aa2ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="486" y="218" width="104" height="26" rx="13" fill="#0f1320" stroke="#33406b"/>
+  <text x="498" y="236" font-size="13" fill="#7aa2ff">/ws 长连接</text>
+  <text x="486" y="332" font-size="12" fill="#9aa3bd">音频帧↑ / TTS·控制消息↓</text>
+
+  <!-- cloud <-> external -->
+  <line x1="1240" y1="482" x2="1300" y2="400" stroke="#5fd0a8" stroke-width="2.5" marker-end="url(#arrowG)"/>
+  <line x1="1300" y1="430" x2="1240" y2="490" stroke="#5fd0a8" stroke-width="2.5" marker-end="url(#arrowG)"/>
+
+  <!-- console <-> cloud -->
+  <line x1="920" y1="900" x2="920" y2="838" stroke="#7aa2ff" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- legend -->
+  <text x="48" y="960" font-size="14" fill="#737d99">图例：</text>
+  <line x1="98" y1="955" x2="138" y2="955" stroke="#7aa2ff" stroke-width="3"/>
+  <text x="146" y="960" font-size="14" fill="#9aa3bd">实时/控制链路</text>
+  <line x1="280" y1="955" x2="320" y2="955" stroke="#5fd0a8" stroke-width="3"/>
+  <text x="328" y="960" font-size="14" fill="#9aa3bd">外部模型调用</text>
+  <text x="48" y="992" font-size="13" fill="#5a637e">目标：端到端语音响应 &lt; 2s ｜ BOM &lt; 200元 ｜ 云端月费 &lt; 55元 ｜ 续航 &gt; 2h</text>
+</svg>

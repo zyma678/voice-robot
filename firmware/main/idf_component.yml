@@ -1,0 +1,12 @@
+## IDF Component Manager manifest.
+## esp_websocket_client moved out of IDF core into the registry in IDF v5.1+,
+## so declare it here to be fetched automatically during the build.
+dependencies:
+  espressif/esp_websocket_client: "^1.2.0"
+  espressif/esp_lvgl_port: "^2.3.0"
+  espressif/esp_lcd_touch_cst816s: "^1.0.3"
+  espressif/network_provisioning: "^1.0.0"
+  "78/esp-opus": "^1.0.5"
+  lvgl/lvgl: "^9.2.0"
+  idf:
+    version: ">=5.0"

@@ -1,0 +1,23 @@
+# Keep the Docker build context small (context is the repo root). The image only
+# needs voice_robot/ + web_console/ + deploy/requirements.txt.
+.venv/
+firmware/
+docs/
+tests/
+tools/
+scripts/
+runtime/
+node_modules/
+**/__pycache__/
+**/*.pyc
+*.egg-info/
+.pytest_cache/
+.git/
+.env
+.env.*
+!.env.example
+.agents/
+.doubaoadk/
+.superpowers/
+.claude/
+deploy/.env

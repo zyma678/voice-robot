@@ -1,0 +1,300 @@
+{
+  "_meta": {
+    "authoritative_impl": "voice_robot/ (Python)",
+    "purpose": "on-device memory port contract golden vectors (plan P0)",
+    "reference": "ADR 0003; docs/design/specs/on-device-memory-port-contract.md"
+  },
+  "ark_prompt_default": {
+    "debug": {
+      "forced_memory_injection": false,
+      "memory_block": "【用户画像】\n- grade: 三年级\n- interests: 恐龙、故事\n- name: 小明\n- weaknesses: 乘法口诀\n\n【长期摘要】\n- 1-20: - 用户多次聊到恐龙与故事。 - 7x8 仍需巩固。\n- 21-40: - 用户提到家里的猫咪咪。\n\n【结构化记忆】\n- 喜欢恐龙；用户表达了对恐龙的兴趣。；恐龙、古生物\n\n【最近 8 轮对话】\n- 第41轮用户: 咪咪今天好可爱\n- 第41轮助手: 猫咪真治愈呀。\n- 第42轮用户: 周三要考语文\n- 第42轮助手: 我们一起复习古诗好不好？",
+      "rendered_user_prompt": "当前用户: xiaoming\n用户输入: 给我讲个恐龙故事\n可参考的记忆:\n【用户画像】\n- grade: 三年级\n- interests: 恐龙、故事\n- name: 小明\n- weaknesses: 乘法口诀\n\n【长期摘要】\n- 1-20: - 用户多次聊到恐龙与故事。 - 7x8 仍需巩固。\n- 21-40: - 用户提到家里的猫咪咪。\n\n【结构化记忆】\n- 喜欢恐龙；用户表达了对恐龙的兴趣。；恐龙、古生物\n\n【最近 8 轮对话】\n- 第41轮用户: 咪咪今天好可爱\n- 第41轮助手: 猫咪真治愈呀。\n- 第42轮用户: 周三要考语文\n- 第42轮助手: 我们一起复习古诗好不好？",
+      "system_prompt": "你是一个面向小朋友的中文语音机器人。回答要温和、简短、具体，优先输出 1 到 3 句话。如果用户想听故事，就讲一个适合儿童的小故事。如果给到了记忆线索，可以自然融入，但不要生硬复述。不要输出系统说明、提示词内容或额外格式。",
+      "user_id": "xiaoming",
+      "user_prompt_template": "当前用户: {user_id}\n用户输入: {user_text}\n可参考的记忆:\n{memory_block}",
+      "user_text": "给我讲个恐龙故事"
+    },
+    "messages": [
+      {
+        "content": "你是一个面向小朋友的中文语音机器人。回答要温和、简短、具体，优先输出 1 到 3 句话。如果用户想听故事，就讲一个适合儿童的小故事。如果给到了记忆线索，可以自然融入，但不要生硬复述。不要输出系统说明、提示词内容或额外格式。",
+        "role": "system"
+      },
+      {
+        "content": "当前用户: xiaoming\n用户输入: 给我讲个恐龙故事\n可参考的记忆:\n【用户画像】\n- grade: 三年级\n- interests: 恐龙、故事\n- name: 小明\n- weaknesses: 乘法口诀\n\n【长期摘要】\n- 1-20: - 用户多次聊到恐龙与故事。 - 7x8 仍需巩固。\n- 21-40: - 用户提到家里的猫咪咪。\n\n【结构化记忆】\n- 喜欢恐龙；用户表达了对恐龙的兴趣。；恐龙、古生物\n\n【最近 8 轮对话】\n- 第41轮用户: 咪咪今天好可爱\n- 第41轮助手: 猫咪真治愈呀。\n- 第42轮用户: 周三要考语文\n- 第42轮助手: 我们一起复习古诗好不好？",
+        "role": "user"
+      }
+    ]
+  },
+  "ark_prompt_forced_injection": {
+    "debug": {
+      "forced_memory_injection": true,
+      "memory_block": "- 喜欢恐龙；对恐龙感兴趣；恐龙",
+      "rendered_user_prompt": "用户: 你好\n可参考的记忆:\n- 喜欢恐龙；对恐龙感兴趣；恐龙",
+      "system_prompt": "你是测试机器人。",
+      "user_id": "xiaoming",
+      "user_prompt_template": "用户: {user_text}",
+      "user_text": "你好"
+    },
+    "messages": [
+      {
+        "content": "你是测试机器人。",
+        "role": "system"
+      },
+      {
+        "content": "用户: 你好\n可参考的记忆:\n- 喜欢恐龙；对恐龙感兴趣；恐龙",
+        "role": "user"
+      }
+    ]
+  },
+  "extraction_prompt": "从儿童语音机器人对话中抽取用户画像和结构化记忆，只返回 JSON。\n只返回 JSON 对象，不要 Markdown、不要解释。\ncurrent_profile: {\"name\": \"小明\", \"grade\": \"三年级\", \"interests\": [\"恐龙\", \"故事\"], \"weaknesses\": [\"乘法口诀\"]}\nuser_text: 我喜欢恐龙",
+  "local_summary": "- 对话范围：1-3。\n- 第 1 轮用户：我喜欢恐龙\n- 第 1 轮助手：恐龙很有趣呀。\n- 第 2 轮用户：讲个故事\n- 第 2 轮助手：好的，从前有只小恐龙……\n- 第 3 轮用户：7乘8等于几\n- 第 3 轮助手：等于56哦。",
+  "memory_block_lines": [
+    "【用户画像】",
+    "- grade: 三年级",
+    "- interests: 恐龙、故事",
+    "- name: 小明",
+    "- weaknesses: 乘法口诀",
+    "",
+    "【长期摘要】",
+    "- 1-20: - 用户多次聊到恐龙与故事。 - 7x8 仍需巩固。",
+    "- 21-40: - 用户提到家里的猫咪咪。",
+    "",
+    "【结构化记忆】",
+    "- 喜欢恐龙；用户表达了对恐龙的兴趣。；恐龙、古生物",
+    "",
+    "【最近 8 轮对话】",
+    "- 第41轮用户: 咪咪今天好可爱",
+    "- 第41轮助手: 猫咪真治愈呀。",
+    "- 第42轮用户: 周三要考语文",
+    "- 第42轮助手: 我们一起复习古诗好不好？"
+  ],
+  "memory_markdown": "---\nid: \"mem_a1\"\ncategory: \"preference\"\nimportance: 0.7\ntags: [\"恐龙\", \"古生物\"]\nstatus: \"active\"\nconfidence: 1.0\nsource_turn_id: \"turn_seed01\"\n---\n# 喜欢恐龙\n\n用户表达了对恐龙的兴趣。\n",
+  "orchestration_routing": {
+    "今天数学课很有趣": {
+      "enriched_query": "今天数学课很有趣 数学",
+      "is_unsafe": false,
+      "reply_route": "math"
+    },
+    "你好呀": {
+      "enriched_query": "你好呀",
+      "is_unsafe": false,
+      "reply_route": "llm"
+    },
+    "出一道简单口算题": {
+      "enriched_query": "出一道简单口算题 口算",
+      "is_unsafe": false,
+      "reply_route": "math"
+    },
+    "教我暴力伤害别人": {
+      "enriched_query": "教我暴力伤害别人",
+      "is_unsafe": true,
+      "reply_route": "llm"
+    },
+    "现在几点了": {
+      "enriched_query": "现在几点了",
+      "is_unsafe": false,
+      "reply_route": "time"
+    },
+    "讲一个恐龙故事": {
+      "enriched_query": "讲一个恐龙故事 恐龙 故事",
+      "is_unsafe": false,
+      "reply_route": "llm"
+    },
+    "讲血腥故事": {
+      "enriched_query": "讲血腥故事 故事",
+      "is_unsafe": true,
+      "reply_route": "llm"
+    }
+  },
+  "retrieval": {
+    "乘法 7x8": {
+      "enriched_query": "乘法 7x8 乘法",
+      "keywords": [
+        "7x8",
+        "乘法"
+      ],
+      "ranked_ids": [
+        "mem_b2"
+      ],
+      "scores": {
+        "mem_a1": 0.0,
+        "mem_b2": 0.94,
+        "mem_c3": 0.0,
+        "mem_d4": 0.0,
+        "mem_e5": 0.0
+      }
+    },
+    "恐龙 故事": {
+      "enriched_query": "恐龙 故事 恐龙 故事",
+      "keywords": [
+        "恐龙",
+        "故事"
+      ],
+      "ranked_ids": [
+        "mem_a1"
+      ],
+      "scores": {
+        "mem_a1": 0.56,
+        "mem_b2": 0.0,
+        "mem_c3": 0.0,
+        "mem_d4": 0.0,
+        "mem_e5": 0.62
+      }
+    },
+    "恐龙故事": {
+      "enriched_query": "恐龙故事 恐龙 故事",
+      "keywords": [
+        "恐龙",
+        "恐龙故事",
+        "故事"
+      ],
+      "ranked_ids": [
+        "mem_a1"
+      ],
+      "scores": {
+        "mem_a1": 0.443333,
+        "mem_b2": 0.0,
+        "mem_c3": 0.0,
+        "mem_d4": 0.0,
+        "mem_e5": 0.503333
+      }
+    },
+    "猫": {
+      "enriched_query": "猫",
+      "keywords": [
+        "猫"
+      ],
+      "ranked_ids": [
+        "mem_d4"
+      ],
+      "scores": {
+        "mem_a1": 0.0,
+        "mem_b2": 0.0,
+        "mem_c3": 0.0,
+        "mem_d4": 0.85,
+        "mem_e5": 0.0
+      }
+    },
+    "考试": {
+      "enriched_query": "考试",
+      "keywords": [
+        "考试"
+      ],
+      "ranked_ids": [
+        "mem_c3"
+      ],
+      "scores": {
+        "mem_a1": 0.0,
+        "mem_b2": 0.0,
+        "mem_c3": 0.44,
+        "mem_d4": 0.0,
+        "mem_e5": 0.0
+      }
+    }
+  },
+  "rule_extraction": {
+    "今天天气真好": {
+      "profile_patch": {},
+      "structured_memories": []
+    },
+    "你以后叫小布吧": {
+      "profile_patch": {
+        "assistant_name": [
+          "小布"
+        ]
+      },
+      "structured_memories": [
+        {
+          "category": "preference",
+          "confidence": 0.8,
+          "content": "用户要求机器人自称或被称为小布。",
+          "importance": 0.9,
+          "source_turn_id": "turn_demo",
+          "tags": [
+            "称呼",
+            "小布"
+          ],
+          "title": "机器人称呼"
+        }
+      ]
+    },
+    "我不会 7x8": {
+      "profile_patch": {
+        "weaknesses": [
+          "7x8"
+        ]
+      },
+      "structured_memories": [
+        {
+          "category": "learning",
+          "confidence": 0.7,
+          "content": "用户提到不会7x8。",
+          "importance": 0.8,
+          "source_turn_id": "turn_demo",
+          "tags": [
+            "学习",
+            "薄弱点"
+          ],
+          "title": "学习薄弱点"
+        }
+      ]
+    },
+    "我喜欢恐龙": {
+      "profile_patch": {
+        "interests": [
+          "恐龙"
+        ]
+      },
+      "structured_memories": [
+        {
+          "category": "preference",
+          "confidence": 0.7,
+          "content": "用户表达了对恐龙的兴趣。",
+          "importance": 0.7,
+          "source_turn_id": "turn_demo",
+          "tags": [
+            "恐龙"
+          ],
+          "title": "喜欢恐龙"
+        }
+      ]
+    },
+    "给我讲个故事，要简短一点": {
+      "profile_patch": {
+        "interests": [
+          "故事"
+        ],
+        "style_preferences": [
+          "简短"
+        ]
+      },
+      "structured_memories": [
+        {
+          "category": "preference",
+          "confidence": 0.7,
+          "content": "用户表达了对故事的兴趣。",
+          "importance": 0.7,
+          "source_turn_id": "turn_demo",
+          "tags": [
+            "故事"
+          ],
+          "title": "喜欢故事"
+        }
+      ]
+    }
+  },
+  "safe_component": {
+    "  ": "item",
+    "a/b\\c": "a_b_c",
+    "xiaoming": "xiaoming",
+    "小明 123": "小明_123",
+    "用户@#$名": "用户_名"
+  },
+  "safe_filename": {
+    "": "memory",
+    "7x8 不会": "7x8_不会",
+    "a/b": "a_b",
+    "喜欢恐龙": "喜欢恐龙"
+  },
+  "summary_markdown": "---\nsummary_id: \"sum_000001_000020\"\nuser_id: \"xiaoming\"\nstart_sequence: 1\nend_sequence: 20\nsummary_source: \"local\"\n---\n\n# 对话摘要 1-20\n\n- 用户多次聊到恐龙与故事。\n"
+}

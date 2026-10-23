@@ -1,0 +1,6 @@
+# Auto-TLS reverse proxy. Caddy obtains/renews a Let's Encrypt certificate for
+# $VR_DOMAIN (needs ports 80+443 reachable and DNS A record → this host's public
+# IP) and transparently proxies WebSocket (/ws) and HTTP (/console, /api/...).
+{$VR_DOMAIN} {
+	reverse_proxy app:8090
+}
